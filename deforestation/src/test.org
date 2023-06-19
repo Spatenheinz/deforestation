@@ -1,0 +1,6 @@
+#+title: Test
+
+* TODO HELLO
+**
+C-c , to make priority
+C-c C-t to toggle weird todo

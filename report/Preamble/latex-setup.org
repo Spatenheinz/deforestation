@@ -1,0 +1,107 @@
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [a4paper, openany]
+#+LATEX_COMPILER: pdflatex
+
+#+LATEX_HEADER: \usepackage{lmodern} % Ensures we have the right font
+
+#+LATEX_HEADER: \usepackage[T1]{fontenc}
+#+LATEX_HEADER: \usepackage[AUTO]{inputenc}
+#+LATEX_HEADER: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage{amsmath, amsthm, amssymb}
+#+LATEX_HEADER: \usepackage{ stmaryrd }
+#+LATEX_HEADER: \usepackage[table, xcdraw]{xcolor}
+#+LATEX_HEADER: \usepackage{titlesec}
+#+LATEX_HEADER: \usepackage{float}
+#+LATEX_HEADER: \usepackage{caption}
+#+LATEX_HEADER: \captionsetup{belowskip=0pt}
+#+LATEX_HEADER: \setlength{\belowcaptionskip}{-10pt}
+
+% Setup for the official front page from KU
+#+LATEX_HEADER: \usepackage[english, science, titlepage]{Preamble/ku-frontpage}
+
+#+LATEX_HEADER: \usepackage{url}
+
+% we dont want indentation
+#+LATEX_HEADER: \setlength{\parindent}{0pt}
+% maybe we want more or less space between paragraphs
+#+LATEX_HEADER: \setlength{\parskip}{1em}
+
+%nicer fonts
+#+LATEX_HEADER: \usepackage[stretch=10]{microtype}
+
+
+% TODO: this is not needed?
+#+LATEX_HEADER: \usepackage{hyphenat}
+
+% TODO: Should make better raggedright have never used
+#+LATEX_HEADER: \usepackage{ragged2e}
+
+% Code highlighting is done by src setup but we keep it for good measure
+#+LATEX_HEADER: \usepackage{minted}
+
+% Disables flush alighment on the right side. Personal preference.
+# #+LATEX_HEADER: \RaggedRight
+
+% Page geometry
+#+LATEX_HEADER: \usepackage[top=1in, bottom=1.25in, left=1.55in, right=1.55in]{geometry}
+
+% Line spacing
+#+LATEX_HEADER: \renewcommand{\baselinestretch}{1.15}
+
+% bib-latex
+#+LATEX_HEADER: \usepackage[backend=biber,dateabbrev=false]{biblatex}
+#+LATEX_HEADER: \usepackage{csquotes} % package to biblatex
+#+LATEX_HEADER: \addbibresource{references.bib}
+% semantics
+#+LATEX_HEADER: \usepackage{semantic}
+% syntax
+#+LATEX_HEADER: \usepackage{syntax}
+#+LATEX_HEADER: \setlength{\grammarparsep}{8pt plus 1pt minus 1pt} % increase separation between rules
+#+LATEX_HEADER: \setlength{\grammarindent}{7em} % increase separation between LHS/RHS
+% checkmark
+#+LATEX_HEADER: \usepackage{ wasysym }
+
+% macros
+#+LATEX_HEADER: \newcommand{\lra}[1]{\langle #1 \rangle}
+#+LATEX_HEADER: \newcommand{\tycheck}[2]{#1 \Leftarrow #2}
+#+LATEX_HEADER: \newcommand{\synth}[2]{#1 \Rightarrow #2}
+#+LATEX_HEADER: \newcommand{\contextcons}[1]{\Gamma,#1\vdash}
+#+LATEX_HEADER: \newcommand{\context}{\Gamma\vdash}
+#+LATEX_HEADER: \newcommand{\vdashs}{\vdash_\Sigma}
+#+LATEX_HEADER: \newcommand{\nilsig}{\langle\rangle}
+#+LATEX_HEADER: \newcommand{\subst}[3]{[#1/#2]#3}
+#+LATEX_HEADER: \newcommand{\judge}[4]{\sigma_{#1};#2 \downarrow #3;\sigma_{#4}}
+#+LATEX_HEADER: \newcommand{\pilf}[3]{\Pi #1 : #2. #3}
+#+LATEX_HEADER: \newcommand{\T}[1]{\mathcal{T}\llbracket #1 \rrbracket}
+#+LATEX_HEADER: \newcommand{\appt}[3]{\T{#1 \; #2 \dots #3}}
+#+LATEX_HEADER: \newcommand{\app}[3]{#1 \; #2 \dots #3}
+#+LATEX_HEADER: \newcommand{\blaze}[1]{#1^{\ominus}}
+#+LATEX_HEADER: \newcommand{\casee}[3]{\mathbf{case} \; #1 \; \mathbf{of} \; p_1 \rightarrow #2 | \dots | p_n \rightarrow #3}
+
+#+LATEX_HEADER: \usepackage{listings}
+#+LATEX_HEADER: \usepackage{xcolor}
+#+LATEX_HEADER: \definecolor{codegreen}{rgb}{0,0.6,0}
+#+LATEX_HEADER: \definecolor{codegray}{rgb}{0.5,0.5,0.5}
+#+LATEX_HEADER: \definecolor{codepurple}{rgb}{0.58,0,0.82}
+#+LATEX_HEADER: \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+#+LATEX_HEADER:
+#+LATEX_HEADER: \lstdefinestyle{mystyle}{
+#+LATEX_HEADER:     backgroundcolor=\color{backcolour},
+#+LATEX_HEADER:     commentstyle=\color{codegreen},
+#+LATEX_HEADER:     keywordstyle=\color{magenta},
+#+LATEX_HEADER:     numberstyle=\tiny\color{codegray},
+#+LATEX_HEADER:     stringstyle=\color{codepurple},
+#+LATEX_HEADER:     basicstyle=\ttfamily\footnotesize,
+#+LATEX_HEADER:     breakatwhitespace=false,
+#+LATEX_HEADER:     breaklines=true,
+#+LATEX_HEADER:     captionpos=b,
+#+LATEX_HEADER:     keepspaces=true,
+#+LATEX_HEADER:     numbers=left,
+#+LATEX_HEADER:     numbersep=5pt,
+#+LATEX_HEADER:     showspaces=false,
+#+LATEX_HEADER:     showstringspaces=false,
+#+LATEX_HEADER:     showtabs=false,
+#+LATEX_HEADER:     tabsize=2
+#+LATEX_HEADER: }
+#+LATEX_HEADER:
+#+LATEX_HEADER: \lstset{style=mystyle}

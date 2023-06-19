@@ -1,0 +1,800 @@
+% Created 2023-06-19 Mon 15:19
+% Intended LaTeX compiler: pdflatex
+\documentclass[a4paper, openany]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{lmodern} % Ensures we have the right font
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{ stmaryrd }
+\usepackage[table, xcdraw]{xcolor}
+\usepackage{titlesec}
+\usepackage{float}
+\usepackage{caption}
+\captionsetup{belowskip=0pt}
+\setlength{\belowcaptionskip}{-10pt}
+\usepackage[english, science, titlepage]{Preamble/ku-frontpage}
+\usepackage{url}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+\usepackage[stretch=10]{microtype}
+\usepackage{hyphenat}
+\usepackage{ragged2e}
+\usepackage{minted}
+\usepackage[top=1in, bottom=1.25in, left=1.55in, right=1.55in]{geometry}
+\renewcommand{\baselinestretch}{1.15}
+\usepackage[backend=biber,dateabbrev=false]{biblatex}
+\usepackage{csquotes} % package to biblatex
+\addbibresource{references.bib}
+\usepackage{semantic}
+\usepackage{syntax}
+\setlength{\grammarparsep}{8pt plus 1pt minus 1pt} % increase separation between rules
+\setlength{\grammarindent}{7em} % increase separation between LHS/RHS
+\usepackage{ wasysym }
+\newcommand{\lra}[1]{\langle #1 \rangle}
+\newcommand{\tycheck}[2]{#1 \Leftarrow #2}
+\newcommand{\synth}[2]{#1 \Rightarrow #2}
+\newcommand{\contextcons}[1]{\Gamma,#1\vdash}
+\newcommand{\context}{\Gamma\vdash}
+\newcommand{\vdashs}{\vdash_\Sigma}
+\newcommand{\nilsig}{\langle\rangle}
+\newcommand{\subst}[3]{[#1/#2]#3}
+\newcommand{\judge}[4]{\sigma_{#1};#2 \downarrow #3;\sigma_{#4}}
+\newcommand{\pilf}[3]{\Pi #1 : #2. #3}
+\newcommand{\T}[1]{\mathcal{T}\llbracket #1 \rrbracket}
+\newcommand{\appt}[3]{\T{#1 \; #2 \dots #3}}
+\newcommand{\app}[3]{#1 \; #2 \dots #3}
+\newcommand{\blaze}[1]{#1^{\ominus}}
+\newcommand{\casee}[3]{\mathbf{case} \; #1 \; \mathbf{of} \; p_1 \rightarrow #2 | \dots | p_n \rightarrow #3}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+backgroundcolor=\color{backcolour},
+commentstyle=\color{codegreen},
+keywordstyle=\color{magenta},
+numberstyle=\tiny\color{codegray},
+stringstyle=\color{codepurple},
+basicstyle=\ttfamily\footnotesize,
+breakatwhitespace=false,
+breaklines=true,
+captionpos=b,
+keepspaces=true,
+numbers=left,
+numbersep=5pt,
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+tabsize=2
+}
+
+\lstset{style=mystyle}
+\assignment{Program Analysis and Transformation}
+\subtitle{Tool for playing with deforestation of higher order terms}
+\repo{https://github.com/Spatenheinz/LeSpeciale}
+\advisor{}
+\author{Jacob Herbst (mwr148)}
+\date{2023-06-19}
+\title{\textbf{Higher order Deforestation}}
+\begin{document}
+
+\maketitle
+\pagenumbering{roman}
+
+\begin{abstract}
+
+\end{abstract}
+
+\newpage
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\newpage
+
+\pagenumbering{arabic}
+
+\section{Introduction}
+\label{sec:orgb4f1b5a}
+\setcounter{page}{1}
+
+Many optimization techniques exists for making compiled programs more efficient. Especially purely functional programming languages lend themselves naturally to many optimization techniques as there exists no side conditions hence allowing for easy sound optimization techniques. One such example is fusion, also called deforestation. Deforestation is in essence nothing more than term rewriting to remove intermediate datastructures. An example of a very simple fusion rule is
+\emph{map f (map g xs) = map (f . g) xs}.
+In this fusion rule the inner map will create an intermediate list and require two iterations over lists, while the fused version will only create the result list and iterate xs once.
+More aggressive fusions rules exists, and the early 90's have presented a varyity of deforestation algorithms starting with Wadler's deforestation algorithms \cite{wadler}.
+Wadler considers deforestation with respect to a first order functional language. He extends his notion of deforestation to higher order languages by considering macros. This leaves of with an unsatisfactory result, where higher order types are first class citizens. The language is furthermore restrictive in that nested cases are not allowed. Many more deforestation algorithms exist such as \cite{shortcut}, but are specific to lists. Hamilton then presented an algorithm to deforest higher order languages in \cite{hodeforest}. This algorithm differs from algorithms such as the one presented in \cite{other} since it is guranteed to terminate.
+
+In this report, we present a tool for toying with deforestation in a similar manner to other tools presented in the Program Analysis and Transformation course. Specifically we present a language that adheres to the descriptions of \cite{hodeforest}. In this we provide a
+repl, where it is possible to define custom datatypes and functions. It is possible to load files, int othe repl and at definition time the functions are type-checked using Hindley-Milner style type inference. The repl further provides commands for evaluation, pretty-printing and showing types of expressions.
+Lastly, as a key focus of the tool it is possible to deforest an expression. This feature is currently broken, as there is some discrepancy between the algorithm we re-represent in \autoref{sec:deforest} and the implementation. The confusion is presented in \autoref{sec:example}. We further present an example in which case the deforestation works correctly.
+We present the language in \autoref{sec:lang} and give a brief introduction into the tool in \autoref{sec:tool}.
+
+\section{Language}
+\label{sec:lang}
+For the tool we present in this report, we consider a small higher-order language, which resembles the Haskell core\cite{core}, while adhering to the language in \cite{hodeforest}.
+
+\subsection{Definition}
+\label{sec:orge05abe8}
+The abstract syntax of the language is presented in \ref{fig:syntax}.
+A program is a list of declarations.
+Each declaration may either be a Type- or a function definition.
+
+Type definitions consist of a type constructor \emph{t} followed by a list of variables, which makes the type potentially polymorphic,
+followed by a |-separated of Type constructors \emph{c}, which may take several variables as arguments.
+
+A function definition consists of a function name followed by any potential parameters and then the expression the symbols should describe.
+
+expressions may be either, a variable, a constructor, or a literal, where literals are integers and characters and the unit \(()\) symbol.
+Expressions can then also be a lambda abstraction or an application of expression \emph{M} onto the expression \emph{N}.
+Lastly, the language contains case expression, allowing for the deconstruction of types (and semantically strict let bindings).
+We do not consider any let bindings as no rules for these are presented in \cite{hodeforest}.
+
+\begin{figure}[h!]
+\begin{align*}
+Prog \; ::=& \; D_s & \text{(list of declarations)} \\
+&&\\
+D \; ::=& \; t \; v_s \; = \; (c \; v_s)* & \text{(type declaration)} \\
+& | \; f \; v_s \; = \; M & \text{(function definition)} \\
+&&\\
+M, N \; ::=& \; v & \text{(variable)} \\
+& | \; c & \text{(constructor)}\\
+& | \; l & \text{(literal)}\\
+& | \; M \; N & \text{(application)}\\
+& | \; \lambda v. M & \text{(abstraction)}\\
+& | \; \textbf{case} \; M \; \textbf{of} P_1 \longrightarrow M_1 \; | \; \cdots \; | P_n \longrightarrow M_n & \text{(case expression)}
+&&\\
+P \; ::=& \; literal & \text{(literal pattern)} \\
+& | \; v & \text{(variable pattern)} \\
+& | \; _ & \text{(variable pattern)} \\
+& | \; c \; P_1 \dots P_n & \text{(constructor pattern)}\\
+\end{align*}
+\caption{Syntax of object language}
+\label{fig:syntax}
+\end{figure}
+
+For the concrete syntax the definitions in \autoref{fig:simpledecl} should suffice.
+We can construct types such as List and Bool in other functional languages.
+Functions may be recursive, but we do not consider any form of mutual recursion.
+This would require a notion of a binding group which we may extend the language with in the future.
+This language is more expressible than the one presented by Wadler in \cite{wadler}, as we require no macro notion of higher-order functions, recursive definitions and custom datatypes.
+
+\begin{figure}[h!]
+\begin{lstlisting}
+List a = Cons a (List a) | Nil;
+Bool = True | False;
+
+fold f a xs = case xs of
+               Nil -> a
+               | Cons y xs -> fold f (f a y) xs;
+
+map f x = case x of
+            Nil -> Nil
+            | Cons x xs -> Cons (f x) (map f xs);
+
+until p xs = case xs of
+               Nil -> Nil
+               | Cons x xs -> case p x of
+                              True -> Nil
+                              | False -> Cons x (until p xs);
+
+repeat h x = Cons x (repeat h (h x));
+\end{lstlisting}
+\caption{Simple declarations}
+\label{fig:simpledecl}
+\end{figure}
+
+In the internal workings of the tool, we use a different representation for function definition, where it will simply be a pair (f, e).
+We reduce the top-level expressions to (f,e) by abstracting each variable. For instance, we get:
+\begin{lstlisting}
+(repeat, \f -> \x -> Cons x (repeat f (f x)))
+\end{lstlisting}
+
+by transforming the repeat function.
+In this process, we do some trivial sanity checks on declarations, such as
+ensuring that no two variables have clashing names and the general well-formedness of declarations.
+These functions can be seen in Appendix \ref{sec:appsanity}.
+
+\subsection{Typing}
+\label{sec:org84d9fa5}
+We should not spend too much time on the typing semantics of the language as the main focus should be on the deforestation algorithm. However, to ensure well-formedness of expression we must briefly consider a type-checking phase.
+
+We consider type checking or rather type inference of programs using an algorithm J approach\cite{milner} but with the typing information from Typing Haskell in Haskell\cite{thih}.
+
+Specifically, we consider the inference as presented in Figure \ref{fig:tyinfer}.
+Literals are trivially typed under the constructor for that type.
+For variables, we look up the type scheme in the environment and then instantiate the type.
+Lambda expressions generate a new type variable \(tv\) and then extend the typing context \(\Gamma, x : tv\) when inferring the type of the body.
+Applications will infer the type of each subpart \(m\) and \(n\) and then generate a new type variable which is returned.
+One thing to note however is that we write a constraint using the writer monad, stating that,
+the type of \(m\) must be unifiable with the arrow type \(nt \rightarrow tv\), where \(nt\) is the type of \(n\) and \(tv\) is the type of \(( m \; n )\).
+Constructors are handled in the same manner as variables, and primitive operators are essentially just functions and thus handled as an application on two arguments, thus omitted from the presented code. They are presented in Abstract \ref{sec:appinfer}.
+
+\begin{figure}[h!]
+\begin{lstlisting}
+infer :: Expr -> Infer Ty
+infer = \case
+  Lit (LInt _) -> return $ TCon $ TC "Int" Star
+  Lit (LChar _) -> return $ TCon $ TC "Char" Star
+  Lit LUnit -> return $ TCon $ TC "()" Star
+
+  Var x -> do
+    env <- ask
+    case TyEnv.lookup x env of
+      Nothing -> throwError $ UnboundVariable x
+      Just t -> inst t
+
+  Lam x m -> do
+    tv <- fresh Star
+    -- for now we only allow variables in the lambda
+    x' <- case x of
+      (Var x) -> return x
+      _ -> throwError $ UnboundVariable "lambda"
+    t <- local (extend x' $ toScheme tv) $ infer m
+    return $ tv `fn` t
+
+  App m n -> do
+    t1 <- infer m
+    t2 <- infer n
+    tv <- fresh Star
+    tell [t1 :~: (t2 `fn` tv)]
+    return tv
+
+  Case m alts -> do
+    tv <- fresh Star
+    t <- infer m
+    inferAlts alts tv t
+\end{lstlisting}
+\caption{Implementation of type inference}
+\label{fig:tyinfer}
+\end{figure}
+
+For case expressions, we infer the type of the selector \(m\) and generate a new type variable and then we infer the alternatives.
+This is done by inferring each alternative and writing the constraint that each branch in a case should have the same type \(t\),
+where the result of the alternatives is the type \(t\), which will be a type-variable.
+
+Figure \ref{fig:tyinferpat} show inference of alternatives. A single alternative is inferred by checking the type of the pattern and then checking the body of the branch. We here further constraint that the pattern must have the same type as the selector of the case expression.
+Inferring patterns will return a pair. Both the type of the pattern and the typing context should extend the typing context with new types for each variable in the inferred pattern.
+Here we again omit the trivial patterns.
+
+\begin{figure}[h!]
+\begin{lstlisting}
+inferPat :: Pattern -> Infer (Ty, TyEnv)
+inferPat = \case
+  VarAlt v -> do
+    tv <- fresh Star
+    return (tv, extend v (toScheme tv) mempty)
+
+  ConAlt c ps -> do
+   (ts, envs) <- inferPats ps
+   t' <- fresh Star
+   t <- tryFind c
+   tell [t :~: foldr fn t' ts]
+   return (t', envs)
+
+inferAlt :: Ty -> AST.Alt -> Infer Ty
+inferAlt t0 (p, m) = do
+  (ts, env) <- inferPat p
+  tell [t0 :~: ts]
+  t' <- local (merge env) $ infer m
+  return $ t'
+
+inferAlts :: [AST.Alt] -> Ty -> Ty -> Infer Ty
+inferAlts alts t t0 = do
+  ts <- mapM (inferAlt t0) alts
+  tell $ map (t :~:) ts
+  return t
+
+inferPats :: [Pattern] -> Infer ([Ty], TyEnv)
+inferPats ps = do
+  x <- mapM inferPat ps
+  let ts = map fst x
+      envs = map snd x
+  return (ts, foldr merge mempty envs)
+\end{lstlisting}
+\caption{Implementation of type inference for patterns}
+\label{fig:tyinferpat}
+\end{figure}
+
+By running \(infer\) on an expression we get its type, which in many cases is just a type-variable, as well as the list of constraints.
+
+The list of constraints is solved, for each constraint \(t1\) and \(t2\) apply the current substitution, which is initially empty, and then finding the most general unifier of the results as in Figure \ref{fig:constraint}.
+
+
+\begin{figure}[h!]
+\begin{lstlisting}
+runSolve :: [Constraint] -> Either InferErr Subst
+runSolve cs = runExcept $ solve (mempty, cs)
+
+solve :: Unif -> Solver Subst
+solve (sub, []) = return sub
+solve (sub, (t1 :~: t2) : cs) = do
+  sub' <- unify (apply sub t1) (apply sub t2)
+  solve (sub' @@ sub, apply sub' cs)
+
+unify :: Ty -> Ty -> Solver Subst
+unify (TVar v) t = bind v t
+unify t (TVar v) = bind v t
+unify (TAp a b) (TAp a' b') = do
+  s <- unify a a'
+  s' <- unify (apply s b) (apply s b')
+  return (s' @@ s)
+unify t1 t2 | t1 == t2 = return mempty
+            | otherwise =  throwError $ Unified t1 t2
+
+bind :: TVar -> Ty -> Solver Subst
+bind v t | t == TVar v = return mempty
+         | v `elem` ftv t = throwError $ Infinite v t -- occurs check
+         | kind v /= kind t = throwError $ KindMismatch (TVar v) t
+         | otherwise = return $ v +-> t
+\end{lstlisting}
+\caption{Constraint solving generated from type inference}
+\label{fig:constraint}
+\end{figure}
+
+If the program is well-typed, we get a substitution as a result which we can apply to the result of inferring \(m\) and we can then quantify the variables that occur in it. This gives us the following types for the definitions in Figure \ref{fig:simpledecl}.
+\begin{lstlisting}
+fold :: ∀a b c. (a -> b -> c) -> a -> List b -> a
+map :: ∀a b. (a -> b) -> List a -> List b
+until :: ∀a. (a -> Bool) -> List a -> List a
+repeat :: ∀a b. (a -> b) -> a -> List a
+\end{lstlisting}
+
+\subsection{Operational Semantics}
+\label{sec:orgfdd92f9}
+We have not considered an operational semantics for the language, however for the deforestation algorithm to be sound, meaning that it preserves the semantics of an expression, the evaluation strategy must be non-strict. If we consider the expression
+
+\emph{fold (+) 0 (map square (until (> n) (repeat (+1) 1)))}
+
+then it will never terminate in non-strict semantics, as \emph{repeat (+1) 1} will generate an infinite list, on the other hand, the result of deforestation, presented in \ref{sec:deforest}, will terminate even with a strict semantic.
+
+\section{Treeless Form}
+\label{sec:orgd69853b}
+The act of deforestation is to eliminate trees from an expression. This can be done if the term is linear and all functions in the term have a treeless definition. The treeless form for the language is defined in \autoref{fig:treeless}
+
+\begin{figure}[h!]
+\begin{align*}
+E ::=& \; v\\
+& | \; c \; E_1 \dots E_n \\
+& | \; E \; E'\\
+& | \; \lambda v. E\\
+& | \; \textbf{case} \; E' \; \textbf{of} \; P_1 \rightarrow E_1 \; | \; \cdots \; | P_n \rightarrow E_n\\
+&&\\
+E' ::=& \; v \\
+& | \; E^{\ominus}
+\end{align*}
+\caption{Treeless form}
+\label{fig:treeless}
+\end{figure}
+
+Specifically, this definition states that a treeless form of an expression requires case selectors and function arguments to be variables, or a blazed term, which we describe later.
+We further constraint that a treeless form requires the expression to be linear, meaning all variables occurs at most once in the expression. Notice here also that literals are considered variables in the sense of treelessness.
+
+The reason arguments and case selectors must be variables ensures that no intermediate trees are generated, For instance in the term:
+
+\emph{until (> n) (repeat (+1) 1)}
+
+The \emph{repeat (+1) 1} will generate an intermediate tree.
+Be aware here that applications where the leftmost function point is a constructor do not impose the same restriction, since the arguments for a constructor are part of the result, whereas they for functions may be destroyed.
+
+The linearity constraint is imposed because the language doesn't define any local storage,
+which means that functions such as \emph{square = \(\lambda\) x -> x * x} will make a program less efficient by substituting \emph{square e} for \emph{e * e} in non-strict semantics in case \emph{e} is expensive to compute.
+
+These restrictions severely limit the programs we can write, and the terms we can remove trees from. Thus we consider the notion of blazing expression, which we denote by \(\ominus\).
+In essence, we blaze variables at their binding level, if they are non-linear, case selectors which are not variables, and function arguments which are not variables.
+The meaning of this is that these expressions cannot be eliminated during deforestation and
+must remain in the transformed expression.
+The reader familiar with the deforestation presented by Wadler\cite{wadler}, will know that his paper uses a different notion of blazing which is type-based\footnote \{This is also the initial intent for the type checker. But as the language transitioned to a higher order, this became less relevant for the project and thus seem superflous.\}
+With these restrictions, we can put all function declarations in treeless form. Allowing their occurrence in expressions to be deforested.
+
+For the functions we defined earlier the treeless form looks as such:
+\begin{figure}[h!]
+\begin{lstlisting}[mathescape=true]
+fold = \f$\ominus$ -> \a -> \xs -> case xs of
+                         Nil ->  a
+                         Cons x xs -> fold f (f a x)$\ominus$ xs
+map = \f$\ominus$ ->  \x -> case x of
+                      Nil -> Nil
+                      Cons x xs ->  Cons (f x) (map f xs)
+until = \p$\ominus$ -> \xs -> case xs of
+                  Nil ->  Nil
+                  Cons x$\ominus$ xs -> case (p x)$\ominus$ of
+                                  True  ->  Nil
+                                  False  ->  Cons z (until p xs)
+repeat = \f$\ominus$ ->  \x$\ominus$ ->  Cons x (repeat f (f x)$\ominus$)
+square = \x$\ominus$ ->  ((x * x))$\ominus$
+\end{lstlisting}
+\caption{Treeless form}
+\label{fig:treelessexample}
+\end{figure}
+
+Making a treeless form representable in the code is simple. We simply add a \emph{Blazed} constructor to the Expr type and similarly for the Pattern type.
+We also easily blaze variables in lambda expressions as the \emph{x} in \(\lambda x e\) is represented as a \emph{Lam (Var ``x'') e}.
+The code for blazing is straight forward and shown in Figure \ref{fig:treeless}.
+simple expressions such as variables, constructors, literals, and already blazed terms, are not blazed.
+For abstractions, we check if the binding occurrences are linear and if so we blaze the binder, then we also blaze the body of the abstraction.
+The case for application shows some of the unfortunate clashes from the curried function application form we have considered for the internal representation.
+We need some way of knowing if the leftmost function point is a constructor or function. We flatten the entire expression, such that the function point is either a function or a constructor, and the tail of the list are arguments.
+If we have a constructor we simply traverse arguments to convert to treeless form and reconstruct the application as a tree. In case the function point is not a constructor we check if the argument is a variable and blaze the term if not.
+Similarly, we blaze case expressions, where patterns act like binders for variables occurring in the pattern.
+
+\begin{figure}[h!]
+\begin{lstlisting}
+blaze :: Expr -> Expr
+blaze = \case
+  Lam x e ->
+    let x' = getVar x
+    in if linear y' e
+       then Lam x (blaze e)
+       else Lam (Blazed x) $ blaze e
+
+  e@(App e1 e2) ->
+    let flat = flatten e
+        (hd, tl) = (head flat, tail flat)
+    in case hd of
+      Con _ -> toTree $ map blaze flat
+      _ -> toTree $ (blaze hd) : map (\x -> if compound x then
+                                               Blazed $ blaze x
+                                            else x) tl
+  ... Case and operators can be found in appendix
+  x -> x
+\end{lstlisting}
+\caption{implementations of blazing}
+\label{fig:treeless}
+\end{figure}
+
+When defining a function in the tool it will be blazed, so it can be used in deforestation.
+
+\section{Deforestation algorithm}
+\label{sec:deforest}
+The deforestation algorithm is a transformation on a term of the object language that will attempt to make a higher order treeless version of the input.
+We denote the transformation as \(\T{M}\) where \(M\) is the term to be transformed.
+The transformation is syntax directed and defined as a set of equation throughout this section.
+
+Rule 1, simply deforest inside a blazed expression.
+rule 2-8 deals with applications, and implicitly variables and constants.
+if a variable and constant is applied to a sequence of arguments we deforest the arguments and blaze them.
+\begin{align}
+\T{\blaze{M}} &= \blaze{(\T{M})}\\
+\appt{v}{M_1}{M_n} &= v \; \blaze{(\T{M_1})} \dots \blaze{(\T{M_n})}\\
+\appt{c}{M_1}{M_n} &= c \; \blaze{(\T{M_1})} \dots \blaze{(\T{M_n})}
+\end{align}
+Rule 4 are kind of special. To ensure that the deforestation algorithm terminates, we consider function application where the function point is a \(f\). Specifically this is a function defined in the environment. We consider the deforestation w.r.t. a set of newly defined functions generated in the process of deforestation called \(\phi\).
+first time we meet a function symbol we make a new function f' and add it to \(\phi\).
+We then end deforestation of the current term, but generate a new function which we deforest.
+If we have seen a function method before, we must identify if it resides in \(\phi\). Is this the case, then we are done with deforestation. In Section \ref{sec:example} we will give a more practical description of this, as it seems this is also where the implementation fails to meet the correctness of the algorithm.
+\begin{flalign}
+&\appt{f}{M_1}{M_n} \phi &&\\\nonumber
+&= \app{f'}{v_1}{v_j} \; \text{if \( (f' = \lambda v'_1 \dots v'_j. M) \in \phi \) and \((\app{f}{M_1}{M_n}) = \lbrack v_1/ v'_{1} , \dots , v_{j}/v'_{j} \rbrack M \)}&&\\\nonumber
+& \qquad \text{where \( v_1 \dots v_j\) are free variables in \((\app{f}{M_1}{M_n})\)}&&\\\nonumber
+&= \app{f''}{v_1}{v_j}, \; \text{otherwise}&&\\\nonumber
+&\qquad \text{where}&&\\\nonumber
+&\qquad f = M&&\\\nonumber
+&\qquad f'' = \lambda v_1 \dots v_j . (\appt{M}{M_1}{M_n} \phi') &&\\\nonumber
+&\qquad \phi' = \phi \cup \{ f'' = \lambda v_1 \dots v_j. \app{f}{M_1}{M_n}\} &&\\\nonumber
+&\qquad v_1 \dots v_j \; \text{are free variables of} \; \app{f}{M_1}{M_n} &&\\\nonumber
+\end{flalign}
+rule 5-8 are applications of a lambda expression onto a sequence of applications.
+if either the variable is blazed or the argument is blazed then we cannot eliminate the argument and thus we must deforest it seperately and preserve the application. The deforest continues with the body of lambda and the rest of the arguments.
+for standard lambda expression we simply substitute the argument \(N_1\) with \(v\) in \(M\).
+\begin{align}
+\appt{(\lambda v . M)}{\blaze{N_1}}{N_n} &= (\lambda v . \appt{M}{N_2}{N_n}) \; \blaze{(\T{N_1})}\\
+\appt{(\lambda \blaze{v} . M)}{N_1}{N_n} &= (\lambda v . \appt{M}{N_2}{N_n}) \; \blaze{(\T{N_1})}\\
+\appt{(\lambda v . M)}{N_1}{N_n} &= \appt{\subst{N_1}{v}{M}}{N_2}{N_n})\\
+(\lambda v . M)  &= (\lambda v . \T{M})
+\end{align}
+
+Rule 9 is much the same as for regular application
+\begin{flalign}
+&\T{\casee{\app{f}{M_1}{M_n}}{N_1}{N_k} } \phi &&\\\nonumber
+&= \app{f'}{v_1}{v_j} \; \text{if \( (f' = \lambda v'_1 \dots v'_j. M) \in \phi \)} &&\\\nonumber
+&\text{ and } \((\casee{\app{f}{M_1}{M_n}}{N_1}{N_k}) = \lbrack v_1/ v'_{1} , \dots , v_{j}/v'_{j} \rbrack M \)&&\\\nonumber
+& \qquad \text{where \( v_1 \dots v_j\) are free variables in \((\casee{\app{f}{M_1}{M_n}}{N_1}{N_k})\)}&&\\\nonumber
+&= \app{f''}{v_1}{v_j}, \; \text{otherwise}&&\\\nonumber
+&\qquad \text{where}&&\\\nonumber
+&\qquad f = M&&\\\nonumber
+&\qquad f'' = \lambda v_1 \dots v_j . (\T{\casee{\app{M}{M_1}{M_n}}{N_1}{N_k}} \phi') &&\\\nonumber
+&\qquad \phi' = \phi \cup \{ f'' = \lambda v_1 \dots v_j. (\casee{\app{M}{M_1}{M_n}}{N_1}{N_k})\} &&\\\nonumber
+&\qquad v_1 \dots v_j \; \text{are free variables of} \; (\casee{\app{M}{M_1}{M_n}}{N_1}{N_k}) &&\\\nonumber
+\end{flalign}
+
+If the selector is blazed, then we cannot eliminate the case expression and thus we must deforest all branches as well as the selector, as per rule 10.
+\begin{multline}
+\T{\casee{\blaze{M}}{N_1}{N_k}} &= \casee{\blaze{\T{M}}}{\T{N_1}}{\T{N_k}}
+\end{multline}
+If the case selector is a variable applied to terms, then we likewise cannot eliminate and we convert to rule 10 and continue.
+\begin{multline}
+\T{\casee{ \app{v}{M_1}{M_n} }{N_1}{N_k}} &= \T{ \casee{ \blaze{(\app{v}{M_1}{M_n}) } }{N_1}{N_k} }
+\end{multline}
+Given the case selector is a constructor, we find the pattern that matches the case, and then we make a nesting of lambdas of the variables that occur and apply them to the arguments \(M_1 \dots M_n\).
+\begin{multline}
+\T{\casee{\app{c}{M_1}{M_n}}{N_1}{N_k}} &= \T{ \lambda v_1 \dots \v_j . N_i } \; \text{where \(p_i = c \; v_1 \dots v_j\)}
+\end{multline}
+
+Rule 13-15 works much the same as the rules for regular application.
+Rule 16 will flip a nested case expression inside out so to speak, by keeping the original selector but moving all branches of the outer case to be branches of inner cases with \(N'_1 \dots N'_j\) as selectors.
+\begin{multline}
+\T{\casee{ \app{(\lambda v . M)}{\blaze{N_1}}{N_n} }{N'_1}{N'_k}} &= (\lambda v . \T{\casee{ \app{M}{N_2}{N_n} }{N'_1}{N'_k} }) \; \blaze{(\T{N_1})}
+\end{multline}
+\begin{multline}
+\T{\casee{ \app{(\lambda \blaze{v} . M)}{N_1}{N_n} }{N'_1}{N'_k}} &= (\lambda v . \T{\casee{ \app{M}{N_2}{N_n} }{N'_1}{N'_k} }) \; \blaze{(\T{N_1})}
+\end{multline}
+\begin{multline}
+\T{\casee{ \app{(\lambda v . M)}{N_1}{N_n} }{N'_1}{N'_k}} &= (\lambda v . \T{\casee{ \app{\subst{N_1}{v}{M}}{N_2}{N_n} }{N'_1}{N'_k} }
+\end{multline}
+\begin{multline}
+\T{\casee{ (\casee{M}{N'_1}{N'_j})}{N_1}{N_k} } &= \mathcal{T}  \llbracket \mathbf{case} \; M \; \mathbf{of}
+&p_1 \rightarrow \casee{N'_1}{N_1}{N_k}
+& \vdots
+&p_n \rightarrow \casee{N'_j}{N_1}{N_k} \rrbracket
+\end{multline}
+
+Some things to note about this algorithm is that the rules, does not work if there is a clash in name of free and bound variables. The current implementation does not handle this and it is thus up to the user to handle. The reason this is not fixed is that there are more grave problems with the code as we will see.
+
+The code can be seen in Appendix \ref{sec:appdeforest}
+
+\section{Example}
+\label{sec:example}
+Ideally, I would have presented a deforestation attempt on a run-length encoder and decoder. However since my implementation does not work, we consider the example from \cite{hodeforest} to see where it goes wrong.
+We use the definitions from \ref{fig:simpledecl} and want to deforest
+
+\emph{fold (+) 0 (map square (until (> n) (repeat (+1) 1)))}
+
+As a spoiler, the paper originally defined the algorithm deforest the code to:
+
+\begin{figure}[h!]
+\begin{lstlisting}[mathescape=true]
+g 0 1 n
+where
+g = \a \m \n -> case (m > n)$\ominus$ of
+                  True -> a
+                  False -> g (a + square m)$\ominus$ (m + 1)$\ominus$  n
+\end{lstlisting}
+\caption{Deforestation according to \cite{hodeforest}}
+\label{fig:target}
+\end{figure}
+
+It should not be hard to see that these two definitions should be semantically equivalent but \emph{g 0 1 n} contains no intermediate lists.
+
+We first use rule 4, thus getting \emph{g 0 1 n} as suggested, since we consider literals as variables.
+We further have that g must be defined by the 3 free variables 0 1 n. For readability, we call the variable representation of \#0 and 1 for \#1.
+
+after applying rules 6,5 and 5 we have the body of g should be the deforestation of:
+\begin{lstlisting}[mathescape=true]
+case map square (until (i > n) (repeat (+ 1) 1)) of
+  Nil  -> #0
+  Cons x xs ->  fold f (f #0 x)$\ominus$ xs
+\end{lstlisting}
+
+continuing applying the rules we at some point have the following definitions, notice the different variables
+is renamed to not get name clashes.
+\begin{lstlisting}[mathescape=true]
+#repeat = \#1 -> \#0 -> \g -> \f -> \p ->    (generated from free vars (fv))
+    (\h$\ominus$ -> (\c$\ominus$ ->  case (p c$\ominus$)$\ominus$ of
+                        True  -> #0
+                        False  -> ?) #1$\ominus$) (+ #1)$\ominus$
+#until = \n -> \#1 -> \#0 -> \g ->  \f -> (generated from fv)
+    (\p$\ominus$ -> #repeat #1 #0 g f p) (i > n)$\ominus$
+#map = \n -> \#1 ->  \#0 ->  \g -> (generated from fv)
+    (\f$\ominus$ -> #until n #1 #0 g f) square$\ominus$
+#fold = \#0 -> \n ->  \#1 -> (generated from free)
+   (\g$\ominus$ -> #map n #1 #0 g) (\x -> \y ->  (x + y))$\ominus$
+\end{lstlisting}
+
+if we do some beta reduction on these we get:
+\begin{lstlisting}[mathescape=true]
+#fold = \#0 -> \n -> \#1 -> case (#1 > n) of
+                              True -> #0
+                              False -> ?
+\end{lstlisting}
+Which looks very much like our target function in Figure\ref{fig:target}(modulo renaming). But the ? is where things go a little wrong.
+
+The expression we consider, when filling ? is
+\begin{lstlisting}[mathescape=true]
+fold g (g #0 (f c))$\ominus$ (map f (until p (repeat h (h c)$\ominus$)))
+\end{lstlisting}
+
+but this gives us the free variables \(\{g, #0, f, c, p, h\}\), remember here the rules state nothing of substitution of variables, and we assume therefore this is an afterthought to get the program on a nice form and should not conflict with the algorithm.
+if we substitute into the expression we have:
+\begin{lstlisting}[mathescape=true]
+fold (+) (#0 + square #1) (map square (until (> n) (repeat (+1) (#1 + 1))))
+\end{lstlisting}
+We can see that the second argument (\#0 + square \#1) is what we want as the first argument to \#fold and n and (\#1 + 1) also reside in the expression and we should be able to get them.
+This does not correspond to the \#fold defined in \(\phi\) and thus we must generate a new function. So we fill the question mark with:
+\begin{lstlisting}[mathescape=true]
+##fold g #0 c f p h
+\end{lstlisting}
+We then again get to
+\begin{lstlisting}[mathescape=true]
+case map f (until p (repeat h (h c)$\ominus$)) of
+  Nil  ->  a
+  Cons x xs ->  fold g (g a x)$\ominus$ xs
+\end{lstlisting}
+after rules 6,5,5. Again we cannot match and generate new functions. this happens for an entire round more, before a cycle starts to form. Thus I assume something goes wrong around here. But exactly what is the problem I am unfortunately not sure.
+
+We can even further state that when considering
+\begin{lstlisting}[mathescape=true]
+fold g (g #0 (f c))$\ominus$ (map f (until p (repeat h (h c)$\ominus$)))
+\end{lstlisting}
+for it to be converted appropriately into
+\begin{lstlisting}[mathescape=true]
+#fold (g #0 (f c))$\ominus$ (h #1) n
+\end{lstlisting}
+which when expanded would give the correct result, we should at some point earlier have bound these exact expressions to a free variable in this expression, but this cannot happen.
+Thus to be frank I am a bit confused if the rules presented in \cite{hodeforest} is even valid.
+
+Hence we leave the implementation broken as is.
+
+
+\subsection{Run length encoding?}
+\label{sec:orgd80097d}
+Just as a little experiment, we look at runlength encoding and decoding to see what output it will give us, in this broken state.
+We consider the following definitions:
+\begin{lstlisting}[mathescape=true]
+List a = Cons a (List a) | Nil;
+Bool = True | False;
+Pair a b = P a b;
+
+map f x = case x of
+            Nil -> Nil
+            | Cons x xs -> Cons (f x) (map f xs);
+
+take i xs = case i of
+              0 -> Nil
+              | n -> case xs of
+                     Nil -> Nil
+                     | Cons x xs -> Cons x (take (i-1) xs);
+
+length as = case as of
+              Nil -> 0
+              | Cons a as -> 1 + length as;
+
+head bs = case bs of
+            Cons b bs -> b;
+
+span p cs = case cs of
+              Nil -> P Nil Nil
+              | Cons c cs' -> case p c of
+                               False -> P Nil cs
+                               | True -> case span p cs' of
+                                           P cs ds -> P (Cons c cs) ds;
+
+groupBy y es = case es of
+                 Nil -> Nil
+                 | Cons e es -> case span (y e) es of
+                                  P es fs -> Cons (Cons e es) (groupBy y fs);
+
+group gs = groupBy (\xx -> \yy -> xx == yy) gs;
+
+encode xs = map (\x -> P (length x)  (head x)) (group xs);
+
+repeat h = Cons h (repeat h);
+
+replicate i j = take i (replicate j);
+
+append ks ls = case ks of
+                 Nil -> ls
+                 | Cons k ns -> Cons k (append ks ls);
+
+concat ms = case ms of
+              Nil -> Nil
+              | Cons m ms -> append m (concat ms);
+
+
+decode ns = concat (map (\o -> case o of P p q -> replicate p q) ns)
+\end{lstlisting}
+
+and deforesting the following
+
+\begin{lstlisting}
+\rs -> decode (encode rs)
+\end{lstlisting}
+
+Will give us the output:
+\begin{lstlisting}[mathescape=true]
+\rs -> #decode rs
+where
+  #decode :: \rs -> #concat rs
+  #concat :: \rs -> (\ms -> ms$\ominus$) (#map rs)$\ominus$
+  #map :: \rs ->  (\f$\ominus$ -> #encode rs f) (\o -> o$\ominus$)$\ominus$
+  #encode :: \rs -> \f -> ##map rs f
+  ##map :: \rs -> \f -> (\f$\ominus$ -> (\x -> x$\ominus$) (#group rs)$\ominus$) (\x$\ominus$ ->
+                                                       P (#length x)$\ominus$ (#head x)$\ominus$)$\ominus$
+  #head :: \x -> x$\ominus$
+  #length :: \x -> x$\ominus$
+  #group :: \rs -> #groupBy rs
+  #groupBy :: \rs -> (\y$\ominus$ -> rs$\ominus$) (λxx -> λyy -> ((xx == yy))$\ominus$)$\ominus$
+\end{lstlisting}
+
+And by some beta-reduction we reach
+\begin{lstlisting}[mathescape=true]
+\rs -> (\o -> o) rs
+\end{lstlisting}
+which means that even with the broken implementation we can in this case get a deforested representation, that in fact does no intermediate computation.
+
+\section{User interface}
+\label{sec:tool}
+The idea behind doing this project, was to make a tool that other Program analysis and Transformation students could use
+to toy with and get a better feeling with deforestation as a program transformation, however as the deforestation implemented
+is broken either do to the algorithm or the implemementation, the tool is not all that useful.
+We do however still present the general interface, as it could be extended in the future.
+The tool serve as a repl with a similar interface to ghci.
+You have a prompt:
+\begin{lstlisting}[mathescape=true]
+$\lambda$>
+\end{lstlisting}
+
+Here datatypes and functions can be declared as such:
+\begin{lstlisting}[mathescape=true]
+$\lambda$> Tree a = Leaf a | Node a (Tree a) (Tree a);
+
+$\lambda$> flip t = case t of Leaf -> t | Node v l r -> Node v (flip r) (flip l);
+\end{lstlisting}
+
+We then define a set of commands:
+\begin{itemize}
+\item eval: to evaluate and expression. This features is not currently implemented to a working extend.
+\item type: to get the type of an expression
+\item load: to load a file into the context.
+\item quit: to quit the repl.
+\item print: to pretty-print an expression, using Wadlers pretty printing style.
+\item deforest: to run deforestation on an expression.
+\end{itemize}
+
+A command is called by prefixing with :. so to deforest an expression one would type:
+\begin{lstlisting}[mathescape=true]
+$\lambda$> :deforest decode (encode xs)
+\end{lstlisting}
+to deforest the decoding of the encoding of a defined list xs.
+
+We have in this report presented a tool that allow users to explore deforestation of a small higher order functional language. Although small the language is expressible and provides similar constructors to that of Haskell core. This goes to show that the deforestation algorithm discussed here may be used in real world scenarios. We have presented a problem with the implementation, but we have also shown that an expression such as \emph{decode (encode xs)} in fact gets deforested and will simply be the identity function.
+We have also presented the implementation for a type-inference. This was done to both show another form of program analysis and to algorithmically ensure the programs we consider to be well formed.
+As mentioned the tool is not complete but is given as open source for further development.
+
+\printbibliography
+
+\appendix
+
+\section{Abstract Syntax}
+\label{sec:orgca5da17}
+
+\lstinputlisting{src/ast.hs}
+
+\section{Preliminary sanity checks}
+\label{sec:appsanity}
+\lstinputlisting{src/check.hs}
+
+\section{Deforestation}
+\label{sec:appdeforest}
+\lstinputlisting{src/deforest.hs}
+
+\section{Type inference}
+\label{sec:appinfer}
+\lstinputlisting{src/type.hs}
+\lstinputlisting{src/tyenv.hs}
+\lstinputlisting{src/subst.hs}
+\lstinputlisting{src/infer.hs}
+
+\section{Parsing}
+\label{sec:org4372218}
+\lstinputlisting{src/parser.hs}
+
+\section{Pretty printing}
+\label{sec:orgcfe755f}
+\lstinputlisting{src/pretty.hs}
+\end{document}

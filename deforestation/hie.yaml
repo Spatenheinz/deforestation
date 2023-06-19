@@ -1,0 +1,13 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "deforestation:lib"
+
+    - path: "./app/Main.hs"
+      component: "deforestation:exe:deforestation-exe"
+
+    - path: "./app/Paths_deforestation.hs"
+      component: "deforestation:exe:deforestation-exe"
+
+    - path: "./test"
+      component: "deforestation:test:deforestation-test"

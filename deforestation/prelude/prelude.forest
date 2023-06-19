@@ -1,0 +1,76 @@
+List a = Cons a (List a) | Nil;
+Bool = True | False;
+Nat = Zero | Suc Nat;
+
+fold g a ys = case ys of
+               Nil -> a
+               | Cons y ys -> fold g (g a y) ys;
+
+map f x = case x of
+            Nil -> Nil
+            | Cons x xs -> Cons (f x) (map f xs);
+
+until p zs = case zs of
+               Nil -> Nil
+               | Cons z zs -> case p z of
+                              True -> Nil
+                              | False -> Cons z (until p zs);
+
+-- repeat h c = Cons c (repeat h (h c));
+
+morethan n xs = case n of
+                  Zero -> True
+                  | Suc n -> case xs of
+                               Nil -> False
+                               | Cons x xs -> morethan n xs;
+square d = d * d;
+
+-- should be > but not in the language yet
+-- diverges z = square z + 2;
+next k z = k + square z;
+
+take i xs = case i of
+              0 -> Nil
+              | n -> case xs of
+                     Nil -> Nil
+                     | Cons x xs -> Cons x (take (i-1) xs);
+
+Pair a b = P a b;
+
+length as = case as of
+              Nil -> 0
+              | Cons a as -> 1 + length as;
+
+head bs = case bs of
+            Cons b bs -> b;
+
+span p cs = case cs of
+              Nil -> P Nil Nil
+              | Cons c cs' -> case p c of
+                               False -> P Nil cs
+                               | True -> case span p cs' of
+                                           P cs ds -> P (Cons c cs) ds;
+groupBy y es = case es of
+                 Nil -> Nil
+                 | Cons e es -> case span (y e) es of
+                                  P es fs -> Cons (Cons e es) (groupBy y fs);
+
+group gs = groupBy (\xx -> \yy -> xx == yy) gs;
+
+encode xs = map (\x -> P (length x)  (head x)) (group xs);
+
+repeat h = Cons h (repeat h);
+
+replicate i j = take i (replicate j);
+
+append ks ls = case ks of
+                 Nil -> ls
+                 | Cons k ns -> Cons k (append ks ls);
+
+
+concat ms = case ms of
+              Nil -> Nil
+              | Cons m ms -> append m (concat ms);
+
+
+decode ns = concat (map (\o -> case o of P p q -> replicate p q) ns)

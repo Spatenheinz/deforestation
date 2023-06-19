@@ -1,0 +1,89 @@
+* Deforestation algorithm
+:PROPERTIES:
+:CUSTOM_ID: sec:deforest
+:END:
+The deforestation algorithm is a transformation on a term of the object language that will attempt to make a higher order treeless version of the input.
+We denote the transformation as $\T{M}$ where $M$ is the term to be transformed.
+The transformation is syntax directed and defined as a set of equation throughout this section.
+
+Rule 1, simply deforest inside a blazed expression.
+rule 2-8 deals with applications, and implicitly variables and constants.
+if a variable and constant is applied to a sequence of arguments we deforest the arguments and blaze them.
+\begin{align}
+\T{\blaze{M}} &= \blaze{(\T{M})}\\
+\appt{v}{M_1}{M_n} &= v \; \blaze{(\T{M_1})} \dots \blaze{(\T{M_n})}\\
+\appt{c}{M_1}{M_n} &= c \; \blaze{(\T{M_1})} \dots \blaze{(\T{M_n})}
+\end{align}
+Rule 4 are kind of special. To ensure that the deforestation algorithm terminates, we consider function application where the function point is a $f$. Specifically this is a function defined in the environment. We consider the deforestation w.r.t. a set of newly defined functions generated in the process of deforestation called $\phi$.
+first time we meet a function symbol we make a new function f' and add it to $\phi$.
+We then end deforestation of the current term, but generate a new function which we deforest.
+If we have seen a function method before, we must identify if it resides in $\phi$. Is this the case, then we are done with deforestation. In Section \ref{sec:example} we will give a more practical description of this, as it seems this is also where the implementation fails to meet the correctness of the algorithm.
+\begin{flalign}
+&\appt{f}{M_1}{M_n} \phi &&\\\nonumber
+&= \app{f'}{v_1}{v_j} \; \text{if \( (f' = \lambda v'_1 \dots v'_j. M) \in \phi \) and \((\app{f}{M_1}{M_n}) = \lbrack v_1/ v'_{1} , \dots , v_{j}/v'_{j} \rbrack M \)}&&\\\nonumber
+& \qquad \text{where \( v_1 \dots v_j\) are free variables in \((\app{f}{M_1}{M_n})\)}&&\\\nonumber
+&= \app{f''}{v_1}{v_j}, \; \text{otherwise}&&\\\nonumber
+&\qquad \text{where}&&\\\nonumber
+&\qquad f = M&&\\\nonumber
+&\qquad f'' = \lambda v_1 \dots v_j . (\appt{M}{M_1}{M_n} \phi') &&\\\nonumber
+&\qquad \phi' = \phi \cup \{ f'' = \lambda v_1 \dots v_j. \app{f}{M_1}{M_n}\} &&\\\nonumber
+&\qquad v_1 \dots v_j \; \text{are free variables of} \; \app{f}{M_1}{M_n} &&\\\nonumber
+\end{flalign}
+rule 5-8 are applications of a lambda expression onto a sequence of applications.
+if either the variable is blazed or the argument is blazed then we cannot eliminate the argument and thus we must deforest it seperately and preserve the application. The deforest continues with the body of lambda and the rest of the arguments.
+for standard lambda expression we simply substitute the argument $N_1$ with $v$ in $M$.
+\begin{align}
+\appt{(\lambda v . M)}{\blaze{N_1}}{N_n} &= (\lambda v . \appt{M}{N_2}{N_n}) \; \blaze{(\T{N_1})}\\
+\appt{(\lambda \blaze{v} . M)}{N_1}{N_n} &= (\lambda v . \appt{M}{N_2}{N_n}) \; \blaze{(\T{N_1})}\\
+\appt{(\lambda v . M)}{N_1}{N_n} &= \appt{\subst{N_1}{v}{M}}{N_2}{N_n})\\
+(\lambda v . M)  &= (\lambda v . \T{M})
+\end{align}
+
+Rule 9 is much the same as for regular application
+\begin{flalign}
+&\T{\casee{\app{f}{M_1}{M_n}}{N_1}{N_k} } \phi &&\\\nonumber
+&= \app{f'}{v_1}{v_j} \; \text{if \( (f' = \lambda v'_1 \dots v'_j. M) \in \phi \)} &&\\\nonumber
+&\text{ and } \((\casee{\app{f}{M_1}{M_n}}{N_1}{N_k}) = \lbrack v_1/ v'_{1} , \dots , v_{j}/v'_{j} \rbrack M \)&&\\\nonumber
+& \qquad \text{where \( v_1 \dots v_j\) are free variables in \((\casee{\app{f}{M_1}{M_n}}{N_1}{N_k})\)}&&\\\nonumber
+&= \app{f''}{v_1}{v_j}, \; \text{otherwise}&&\\\nonumber
+&\qquad \text{where}&&\\\nonumber
+&\qquad f = M&&\\\nonumber
+&\qquad f'' = \lambda v_1 \dots v_j . (\T{\casee{\app{M}{M_1}{M_n}}{N_1}{N_k}} \phi') &&\\\nonumber
+&\qquad \phi' = \phi \cup \{ f'' = \lambda v_1 \dots v_j. (\casee{\app{M}{M_1}{M_n}}{N_1}{N_k})\} &&\\\nonumber
+&\qquad v_1 \dots v_j \; \text{are free variables of} \; (\casee{\app{M}{M_1}{M_n}}{N_1}{N_k}) &&\\\nonumber
+\end{flalign}
+
+If the selector is blazed, then we cannot eliminate the case expression and thus we must deforest all branches as well as the selector, as per rule 10.
+\begin{multline}
+\T{\casee{\blaze{M}}{N_1}{N_k}} &= \casee{\blaze{\T{M}}}{\T{N_1}}{\T{N_k}}
+\end{multline}
+If the case selector is a variable applied to terms, then we likewise cannot eliminate and we convert to rule 10 and continue.
+\begin{multline}
+\T{\casee{ \app{v}{M_1}{M_n} }{N_1}{N_k}} &= \T{ \casee{ \blaze{(\app{v}{M_1}{M_n}) } }{N_1}{N_k} }
+\end{multline}
+Given the case selector is a constructor, we find the pattern that matches the case, and then we make a nesting of lambdas of the variables that occur and apply them to the arguments $M_1 \dots M_n$.
+\begin{multline}
+\T{\casee{\app{c}{M_1}{M_n}}{N_1}{N_k}} &= \T{ \lambda v_1 \dots \v_j . N_i } \; \text{where \(p_i = c \; v_1 \dots v_j\)}
+\end{multline}
+
+Rule 13-15 works much the same as the rules for regular application.
+Rule 16 will flip a nested case expression inside out so to speak, by keeping the original selector but moving all branches of the outer case to be branches of inner cases with $N'_1 \dots N'_j$ as selectors.
+\begin{multline}
+\T{\casee{ \app{(\lambda v . M)}{\blaze{N_1}}{N_n} }{N'_1}{N'_k}} &= (\lambda v . \T{\casee{ \app{M}{N_2}{N_n} }{N'_1}{N'_k} }) \; \blaze{(\T{N_1})}
+\end{multline}
+\begin{multline}
+\T{\casee{ \app{(\lambda \blaze{v} . M)}{N_1}{N_n} }{N'_1}{N'_k}} &= (\lambda v . \T{\casee{ \app{M}{N_2}{N_n} }{N'_1}{N'_k} }) \; \blaze{(\T{N_1})}
+\end{multline}
+\begin{multline}
+\T{\casee{ \app{(\lambda v . M)}{N_1}{N_n} }{N'_1}{N'_k}} &= (\lambda v . \T{\casee{ \app{\subst{N_1}{v}{M}}{N_2}{N_n} }{N'_1}{N'_k} }
+\end{multline}
+\begin{multline}
+\T{\casee{ (\casee{M}{N'_1}{N'_j})}{N_1}{N_k} } &= \mathcal{T}  \llbracket \mathbf{case} \; M \; \mathbf{of}
+&p_1 \rightarrow \casee{N'_1}{N_1}{N_k}
+& \vdots
+&p_n \rightarrow \casee{N'_j}{N_1}{N_k} \rrbracket
+\end{multline}
+
+Some things to note about this algorithm is that the rules, does not work if there is a clash in name of free and bound variables. The current implementation does not handle this and it is thus up to the user to handle. The reason this is not fixed is that there are more grave problems with the code as we will see.
+
+The code can be seen in Appendix \ref{sec:appdeforest}

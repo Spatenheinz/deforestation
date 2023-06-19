@@ -1,0 +1,245 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{shortcut}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=f0e58576506363904fca2f48931602af}{%
+           family={Gill},
+           familyi={G\bibinitperiod},
+           given={Andrew},
+           giveni={A\bibinitperiod}}}%
+        {{hash=3b40232599ad9da3d826e3ed2afc0683}{%
+           family={Launchbury},
+           familyi={L\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+        {{hash=b53297525d22bba28e8a789aec2fb226}{%
+           family={Peyton\bibnamedelima Jones},
+           familyi={P\bibinitperiod\bibinitdelim J\bibinitperiod},
+           given={Simon\bibnamedelima L.},
+           giveni={S\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Copenhagen, Denmark}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{7b3d15916697dc870f7b088b64568bf2}
+      \strng{fullhash}{7b3d15916697dc870f7b088b64568bf2}
+      \strng{bibnamehash}{7b3d15916697dc870f7b088b64568bf2}
+      \strng{authorbibnamehash}{7b3d15916697dc870f7b088b64568bf2}
+      \strng{authornamehash}{7b3d15916697dc870f7b088b64568bf2}
+      \strng{authorfullhash}{7b3d15916697dc870f7b088b64568bf2}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the Conference on Functional Programming Languages and Computer Architecture}
+      \field{isbn}{089791595X}
+      \field{series}{FPCA '93}
+      \field{title}{A Short Cut to Deforestation}
+      \field{year}{1993}
+      \field{pages}{223\bibrangedash 232}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1145/165180.165214
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1145/165180.165214
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1145/165180.165214
+      \endverb
+    \endentry
+    \entry{hodeforest}{article}{}
+      \name{author}{1}{}{%
+        {{hash=d084af07cba8d6712a94c327e69810d5}{%
+           family={Hamilton},
+           familyi={H\bibinitperiod},
+           given={Geoff},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{d084af07cba8d6712a94c327e69810d5}
+      \strng{fullhash}{d084af07cba8d6712a94c327e69810d5}
+      \strng{bibnamehash}{d084af07cba8d6712a94c327e69810d5}
+      \strng{authorbibnamehash}{d084af07cba8d6712a94c327e69810d5}
+      \strng{authornamehash}{d084af07cba8d6712a94c327e69810d5}
+      \strng{authorfullhash}{d084af07cba8d6712a94c327e69810d5}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{month}{01}
+      \field{title}{Higher Order Deforestation}
+      \field{year}{1995}
+    \endentry
+    \entry{core}{online}{}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{title}{Haskell core syn type}
+      \field{urlday}{19}
+      \field{urlmonth}{6}
+      \field{urlyear}{2023}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/compiler/core-syn-type
+      \endverb
+      \verb{url}
+      \verb https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/compiler/core-syn-type
+      \endverb
+    \endentry
+    \entry{thih}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{hash=0d2211b99d6cb2d9c691ce527847833e}{%
+           family={Jones},
+           familyi={J\bibinitperiod},
+           given={Mark\bibnamedelima P.},
+           giveni={M\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+      }
+      \strng{namehash}{0d2211b99d6cb2d9c691ce527847833e}
+      \strng{fullhash}{0d2211b99d6cb2d9c691ce527847833e}
+      \strng{bibnamehash}{0d2211b99d6cb2d9c691ce527847833e}
+      \strng{authorbibnamehash}{0d2211b99d6cb2d9c691ce527847833e}
+      \strng{authornamehash}{0d2211b99d6cb2d9c691ce527847833e}
+      \strng{authorfullhash}{0d2211b99d6cb2d9c691ce527847833e}
+      \field{sortinit}{J}
+      \field{sortinithash}{b2f54a9081ace9966a7cb9413811edb4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Typing Haskell in Haskell}
+      \field{year}{1999}
+    \endentry
+    \entry{other}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=dff0947b507b881bf43b333bdea82006}{%
+           family={Marlow},
+           familyi={M\bibinitperiod},
+           given={Simon},
+           giveni={S\bibinitperiod}}}%
+        {{hash=b4d861345944ddeeaf658a11c2f0f6a7}{%
+           family={Wadler},
+           familyi={W\bibinitperiod},
+           given={Philip},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berlin, Heidelberg}%
+      }
+      \list{publisher}{1}{%
+        {Springer-Verlag}%
+      }
+      \strng{namehash}{10b0fbdcaaaed4b068640f07fe954d77}
+      \strng{fullhash}{10b0fbdcaaaed4b068640f07fe954d77}
+      \strng{bibnamehash}{10b0fbdcaaaed4b068640f07fe954d77}
+      \strng{authorbibnamehash}{10b0fbdcaaaed4b068640f07fe954d77}
+      \strng{authornamehash}{10b0fbdcaaaed4b068640f07fe954d77}
+      \strng{authorfullhash}{10b0fbdcaaaed4b068640f07fe954d77}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 1992 Glasgow Workshop on Functional Programming}
+      \field{isbn}{3540198202}
+      \field{title}{Deforestation for Higher-Order Functions}
+      \field{year}{1992}
+      \field{pages}{154\bibrangedash 165}
+      \range{pages}{12}
+    \endentry
+    \entry{milner}{article}{}
+      \name{author}{1}{}{%
+        {{hash=b2f5936dc874ec167c9911352b5cae01}{%
+           family={Milner},
+           familyi={M\bibinitperiod},
+           given={Robin},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{b2f5936dc874ec167c9911352b5cae01}
+      \strng{fullhash}{b2f5936dc874ec167c9911352b5cae01}
+      \strng{bibnamehash}{b2f5936dc874ec167c9911352b5cae01}
+      \strng{authorbibnamehash}{b2f5936dc874ec167c9911352b5cae01}
+      \strng{authornamehash}{b2f5936dc874ec167c9911352b5cae01}
+      \strng{authorfullhash}{b2f5936dc874ec167c9911352b5cae01}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{The aim of this work is largely a practical one. A widely employed style of programming, particularly in structure-processing languages which impose no discipline of types, entails defining procedures which work well on objects of a wide variety. We present a formal type discipline for such polymorphic procedures in the context of a simple programming language, and a compile time type-checking algorithm W which enforces the discipline. A Semantic Soundness Theorem (based on a formal semantics for the language) states that well-type programs cannot “go wrong” and a Syntactic Soundness Theorem states that if W accepts a program then it is well typed. We also discuss extending these results to richer languages; a type-checking algorithm based on W is in fact already implemented and working, for the metalanguage ML in the Edinburgh LCF system.}
+      \field{issn}{0022-0000}
+      \field{journaltitle}{Journal of Computer and System Sciences}
+      \field{number}{3}
+      \field{title}{A theory of type polymorphism in programming}
+      \field{volume}{17}
+      \field{year}{1978}
+      \field{pages}{348\bibrangedash 375}
+      \range{pages}{28}
+      \verb{doi}
+      \verb https://doi.org/10.1016/0022-0000(78)90014-4
+      \endverb
+      \verb{urlraw}
+      \verb https://www.sciencedirect.com/science/article/pii/0022000078900144
+      \endverb
+      \verb{url}
+      \verb https://www.sciencedirect.com/science/article/pii/0022000078900144
+      \endverb
+    \endentry
+    \entry{wadler}{article}{}
+      \name{author}{1}{}{%
+        {{hash=b4d861345944ddeeaf658a11c2f0f6a7}{%
+           family={Wadler},
+           familyi={W\bibinitperiod},
+           given={Philip},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{b4d861345944ddeeaf658a11c2f0f6a7}
+      \strng{fullhash}{b4d861345944ddeeaf658a11c2f0f6a7}
+      \strng{bibnamehash}{b4d861345944ddeeaf658a11c2f0f6a7}
+      \strng{authorbibnamehash}{b4d861345944ddeeaf658a11c2f0f6a7}
+      \strng{authornamehash}{b4d861345944ddeeaf658a11c2f0f6a7}
+      \strng{authorfullhash}{b4d861345944ddeeaf658a11c2f0f6a7}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{An algorithm that transforms programs to eliminate intermediate trees is presented. The algorithm applies to any term containing only functions with definitions in a given syntactic form, and is suitable for incorporation in an optimizing compiler.}
+      \field{issn}{0304-3975}
+      \field{journaltitle}{Theoretical Computer Science}
+      \field{number}{2}
+      \field{title}{Deforestation: transforming programs to eliminate trees}
+      \field{volume}{73}
+      \field{year}{1990}
+      \field{pages}{231\bibrangedash 248}
+      \range{pages}{18}
+      \verb{doi}
+      \verb https://doi.org/10.1016/0304-3975(90)90147-A
+      \endverb
+      \verb{urlraw}
+      \verb https://www.sciencedirect.com/science/article/pii/030439759090147A
+      \endverb
+      \verb{url}
+      \verb https://www.sciencedirect.com/science/article/pii/030439759090147A
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

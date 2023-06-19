@@ -1,0 +1,34 @@
+* User interface
+:PROPERTIES:
+:CUSTOM_ID: sec:tool
+:END:
+The idea behind doing this project, was to make a tool that other Program analysis and Transformation students could use
+to toy with and get a better feeling with deforestation as a program transformation, however as the deforestation implemented
+is broken either do to the algorithm or the implemementation, the tool is not all that useful.
+We do however still present the general interface, as it could be extended in the future.
+The tool serve as a repl with a similar interface to ghci.
+You have a prompt:
+\begin{lstlisting}[mathescape=true]
+$\lambda$>
+\end{lstlisting}
+
+Here datatypes and functions can be declared as such:
+\begin{lstlisting}[mathescape=true]
+$\lambda$> Tree a = Leaf a | Node a (Tree a) (Tree a);
+
+$\lambda$> flip t = case t of Leaf -> t | Node v l r -> Node v (flip r) (flip l);
+\end{lstlisting}
+
+We then define a set of commands:
+- eval: to evaluate and expression. This features is not currently implemented to a working extend.
+- type: to get the type of an expression
+- load: to load a file into the context.
+- quit: to quit the repl.
+- print: to pretty-print an expression, using Wadlers pretty printing style.
+- deforest: to run deforestation on an expression.
+
+A command is called by prefixing with :. so to deforest an expression one would type:
+\begin{lstlisting}[mathescape=true]
+$\lambda$> :deforest decode (encode xs)
+\end{lstlisting}
+to deforest the decoding of the encoding of a defined list xs.

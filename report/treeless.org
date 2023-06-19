@@ -1,0 +1,101 @@
+** Treeless Form
+The act of deforestation is to eliminate trees from an expression. This can be done if the term is linear and all functions in the term have a treeless definition. The treeless form for the language is defined in \autoref{fig:treeless}
+
+#+begin_export latex
+\begin{figure}[h!]
+\begin{align*}
+E ::=& \; v\\
+& | \; c \; E_1 \dots E_n \\
+& | \; E \; E'\\
+& | \; \lambda v. E\\
+& | \; \textbf{case} \; E' \; \textbf{of} \; P_1 \rightarrow E_1 \; | \; \cdots \; | P_n \rightarrow E_n\\
+&&\\
+E' ::=& \; v \\
+& | \; E^{\ominus}
+\end{align*}
+\caption{Treeless form}
+\label{fig:treeless}
+\end{figure}
+#+end_export
+
+Specifically, this definition states that a treeless form of an expression requires case selectors and function arguments to be variables, or a blazed term, which we describe later.
+We further constraint that a treeless form requires the expression to be linear, meaning all variables occurs at most once in the expression. Notice here also that literals are considered variables in the sense of treelessness.
+
+The reason arguments and case selectors must be variables ensures that no intermediate trees are generated, For instance in the term:
+
+/until (> n) (repeat (+1) 1)/
+
+The /repeat (+1) 1/ will generate an intermediate tree.
+Be aware here that applications where the leftmost function point is a constructor do not impose the same restriction, since the arguments for a constructor are part of the result, whereas they for functions may be destroyed.
+
+The linearity constraint is imposed because the language doesn't define any local storage,
+which means that functions such as /square = \lambda x -> x * x/ will make a program less efficient by substituting /square e/ for /e * e/ in non-strict semantics in case /e/ is expensive to compute.
+
+These restrictions severely limit the programs we can write, and the terms we can remove trees from. Thus we consider the notion of blazing expression, which we denote by $\ominus$.
+In essence, we blaze variables at their binding level, if they are non-linear, case selectors which are not variables, and function arguments which are not variables.
+The meaning of this is that these expressions cannot be eliminated during deforestation and
+must remain in the transformed expression.
+The reader familiar with the deforestation presented by Wadler\cite{wadler}, will know that his paper uses a different notion of blazing which is type-based\footnote {This is also the initial intent for the type checker. But as the language transitioned to a higher order, this became less relevant for the project and thus seem superflous.}
+With these restrictions, we can put all function declarations in treeless form. Allowing their occurrence in expressions to be deforested.
+
+For the functions we defined earlier the treeless form looks as such:
+#+begin_export latex
+\begin{figure}[h!]
+\begin{lstlisting}[mathescape=true]
+fold = \f$\ominus$ -> \a -> \xs -> case xs of
+                         Nil ->  a
+                         Cons x xs -> fold f (f a x)$\ominus$ xs
+map = \f$\ominus$ ->  \x -> case x of
+                      Nil -> Nil
+                      Cons x xs ->  Cons (f x) (map f xs)
+until = \p$\ominus$ -> \xs -> case xs of
+                  Nil ->  Nil
+                  Cons x$\ominus$ xs -> case (p x)$\ominus$ of
+                                  True  ->  Nil
+                                  False  ->  Cons z (until p xs)
+repeat = \f$\ominus$ ->  \x$\ominus$ ->  Cons x (repeat f (f x)$\ominus$)
+square = \x$\ominus$ ->  ((x * x))$\ominus$
+\end{lstlisting}
+\caption{Treeless form}
+\label{fig:treelessexample}
+\end{figure}
+#+end_export
+
+Making a treeless form representable in the code is simple. We simply add a /Blazed/ constructor to the Expr type and similarly for the Pattern type.
+We also easily blaze variables in lambda expressions as the /x/ in $\lambda x e$ is represented as a /Lam (Var "x") e/.
+The code for blazing is straight forward and shown in Figure \ref{fig:treeless}.
+simple expressions such as variables, constructors, literals, and already blazed terms, are not blazed.
+For abstractions, we check if the binding occurrences are linear and if so we blaze the binder, then we also blaze the body of the abstraction.
+The case for application shows some of the unfortunate clashes from the curried function application form we have considered for the internal representation.
+We need some way of knowing if the leftmost function point is a constructor or function. We flatten the entire expression, such that the function point is either a function or a constructor, and the tail of the list are arguments.
+If we have a constructor we simply traverse arguments to convert to treeless form and reconstruct the application as a tree. In case the function point is not a constructor we check if the argument is a variable and blaze the term if not.
+Similarly, we blaze case expressions, where patterns act like binders for variables occurring in the pattern.
+
+#+begin_export latex
+\begin{figure}[h!]
+\begin{lstlisting}
+blaze :: Expr -> Expr
+blaze = \case
+  Lam x e ->
+    let x' = getVar x
+    in if linear y' e
+       then Lam x (blaze e)
+       else Lam (Blazed x) $ blaze e
+
+  e@(App e1 e2) ->
+    let flat = flatten e
+        (hd, tl) = (head flat, tail flat)
+    in case hd of
+      Con _ -> toTree $ map blaze flat
+      _ -> toTree $ (blaze hd) : map (\x -> if compound x then
+                                               Blazed $ blaze x
+                                            else x) tl
+  ... Case and operators can be found in appendix
+  x -> x
+\end{lstlisting}
+\caption{implementations of blazing}
+\label{fig:treeless}
+\end{figure}
+#+end_export
+
+When defining a function in the tool it will be blazed, so it can be used in deforestation.

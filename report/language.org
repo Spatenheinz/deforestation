@@ -1,0 +1,246 @@
+* Language
+:PROPERTIES:
+:CUSTOM_ID: sec:lang
+:END:
+For the tool we present in this report, we consider a small higher-order language, which resembles the Haskell core\cite{core}, while adhering to the language in \cite{hodeforest}.
+
+** Definition
+The abstract syntax of the language is presented in \ref{fig:syntax}.
+A program is a list of declarations.
+Each declaration may either be a Type- or a function definition.
+
+Type definitions consist of a type constructor /t/ followed by a list of variables, which makes the type potentially polymorphic,
+followed by a |-separated of Type constructors /c/, which may take several variables as arguments.
+
+A function definition consists of a function name followed by any potential parameters and then the expression the symbols should describe.
+
+expressions may be either, a variable, a constructor, or a literal, where literals are integers and characters and the unit $()$ symbol.
+Expressions can then also be a lambda abstraction or an application of expression /M/ onto the expression /N/.
+Lastly, the language contains case expression, allowing for the deconstruction of types (and semantically strict let bindings).
+We do not consider any let bindings as no rules for these are presented in \cite{hodeforest}.
+
+#+begin_export latex
+\begin{figure}[h!]
+\begin{align*}
+Prog \; ::=& \; D_s & \text{(list of declarations)} \\
+&&\\
+D \; ::=& \; t \; v_s \; = \; (c \; v_s)* & \text{(type declaration)} \\
+& | \; f \; v_s \; = \; M & \text{(function definition)} \\
+&&\\
+M, N \; ::=& \; v & \text{(variable)} \\
+& | \; c & \text{(constructor)}\\
+& | \; l & \text{(literal)}\\
+& | \; M \; N & \text{(application)}\\
+& | \; \lambda v. M & \text{(abstraction)}\\
+& | \; \textbf{case} \; M \; \textbf{of} P_1 \longrightarrow M_1 \; | \; \cdots \; | P_n \longrightarrow M_n & \text{(case expression)}
+&&\\
+P \; ::=& \; literal & \text{(literal pattern)} \\
+& | \; v & \text{(variable pattern)} \\
+& | \; _ & \text{(variable pattern)} \\
+& | \; c \; P_1 \dots P_n & \text{(constructor pattern)}\\
+\end{align*}
+\caption{Syntax of object language}
+\label{fig:syntax}
+\end{figure}
+#+end_export
+
+For the concrete syntax the definitions in \autoref{fig:simpledecl} should suffice.
+We can construct types such as List and Bool in other functional languages.
+Functions may be recursive, but we do not consider any form of mutual recursion.
+This would require a notion of a binding group which we may extend the language with in the future.
+This language is more expressible than the one presented by Wadler in \cite{wadler}, as we require no macro notion of higher-order functions, recursive definitions and custom datatypes.
+
+#+begin_export latex
+\begin{figure}[h!]
+\begin{lstlisting}
+List a = Cons a (List a) | Nil;
+Bool = True | False;
+
+fold f a xs = case xs of
+               Nil -> a
+               | Cons y xs -> fold f (f a y) xs;
+
+map f x = case x of
+            Nil -> Nil
+            | Cons x xs -> Cons (f x) (map f xs);
+
+until p xs = case xs of
+               Nil -> Nil
+               | Cons x xs -> case p x of
+                              True -> Nil
+                              | False -> Cons x (until p xs);
+
+repeat h x = Cons x (repeat h (h x));
+\end{lstlisting}
+\caption{Simple declarations}
+\label{fig:simpledecl}
+\end{figure}
+#+end_export
+
+In the internal workings of the tool, we use a different representation for function definition, where it will simply be a pair (f, e).
+We reduce the top-level expressions to (f,e) by abstracting each variable. For instance, we get:
+\begin{lstlisting}
+(repeat, \f -> \x -> Cons x (repeat f (f x)))
+\end{lstlisting}
+
+by transforming the repeat function.
+In this process, we do some trivial sanity checks on declarations, such as
+ensuring that no two variables have clashing names and the general well-formedness of declarations.
+These functions can be seen in Appendix \ref{sec:appsanity}.
+
+** Typing
+We should not spend too much time on the typing semantics of the language as the main focus should be on the deforestation algorithm. However, to ensure well-formedness of expression we must briefly consider a type-checking phase.
+
+We consider type checking or rather type inference of programs using an algorithm J approach\cite{milner} but with the typing information from Typing Haskell in Haskell\cite{thih}.
+
+Specifically, we consider the inference as presented in Figure \ref{fig:tyinfer}.
+Literals are trivially typed under the constructor for that type.
+For variables, we look up the type scheme in the environment and then instantiate the type.
+Lambda expressions generate a new type variable $tv$ and then extend the typing context $\Gamma, x : tv$ when inferring the type of the body.
+Applications will infer the type of each subpart $m$ and $n$ and then generate a new type variable which is returned.
+One thing to note however is that we write a constraint using the writer monad, stating that,
+the type of $m$ must be unifiable with the arrow type $nt \rightarrow tv$, where $nt$ is the type of $n$ and $tv$ is the type of $( m \; n )$.
+Constructors are handled in the same manner as variables, and primitive operators are essentially just functions and thus handled as an application on two arguments, thus omitted from the presented code. They are presented in Abstract \ref{sec:appinfer}.
+
+#+begin_export latex
+\begin{figure}[h!]
+\begin{lstlisting}
+infer :: Expr -> Infer Ty
+infer = \case
+  Lit (LInt _) -> return $ TCon $ TC "Int" Star
+  Lit (LChar _) -> return $ TCon $ TC "Char" Star
+  Lit LUnit -> return $ TCon $ TC "()" Star
+
+  Var x -> do
+    env <- ask
+    case TyEnv.lookup x env of
+      Nothing -> throwError $ UnboundVariable x
+      Just t -> inst t
+
+  Lam x m -> do
+    tv <- fresh Star
+    -- for now we only allow variables in the lambda
+    x' <- case x of
+      (Var x) -> return x
+      _ -> throwError $ UnboundVariable "lambda"
+    t <- local (extend x' $ toScheme tv) $ infer m
+    return $ tv `fn` t
+
+  App m n -> do
+    t1 <- infer m
+    t2 <- infer n
+    tv <- fresh Star
+    tell [t1 :~: (t2 `fn` tv)]
+    return tv
+
+  Case m alts -> do
+    tv <- fresh Star
+    t <- infer m
+    inferAlts alts tv t
+\end{lstlisting}
+\caption{Implementation of type inference}
+\label{fig:tyinfer}
+\end{figure}
+#+end_export
+
+For case expressions, we infer the type of the selector $m$ and generate a new type variable and then we infer the alternatives.
+This is done by inferring each alternative and writing the constraint that each branch in a case should have the same type $t$,
+where the result of the alternatives is the type $t$, which will be a type-variable.
+
+Figure \ref{fig:tyinferpat} show inference of alternatives. A single alternative is inferred by checking the type of the pattern and then checking the body of the branch. We here further constraint that the pattern must have the same type as the selector of the case expression.
+Inferring patterns will return a pair. Both the type of the pattern and the typing context should extend the typing context with new types for each variable in the inferred pattern.
+Here we again omit the trivial patterns.
+
+#+begin_export latex
+\begin{figure}[h!]
+\begin{lstlisting}
+inferPat :: Pattern -> Infer (Ty, TyEnv)
+inferPat = \case
+  VarAlt v -> do
+    tv <- fresh Star
+    return (tv, extend v (toScheme tv) mempty)
+
+  ConAlt c ps -> do
+   (ts, envs) <- inferPats ps
+   t' <- fresh Star
+   t <- tryFind c
+   tell [t :~: foldr fn t' ts]
+   return (t', envs)
+
+inferAlt :: Ty -> AST.Alt -> Infer Ty
+inferAlt t0 (p, m) = do
+  (ts, env) <- inferPat p
+  tell [t0 :~: ts]
+  t' <- local (merge env) $ infer m
+  return $ t'
+
+inferAlts :: [AST.Alt] -> Ty -> Ty -> Infer Ty
+inferAlts alts t t0 = do
+  ts <- mapM (inferAlt t0) alts
+  tell $ map (t :~:) ts
+  return t
+
+inferPats :: [Pattern] -> Infer ([Ty], TyEnv)
+inferPats ps = do
+  x <- mapM inferPat ps
+  let ts = map fst x
+      envs = map snd x
+  return (ts, foldr merge mempty envs)
+\end{lstlisting}
+\caption{Implementation of type inference for patterns}
+\label{fig:tyinferpat}
+\end{figure}
+#+end_export
+
+By running $infer$ on an expression we get its type, which in many cases is just a type-variable, as well as the list of constraints.
+
+The list of constraints is solved, for each constraint $t1$ and $t2$ apply the current substitution, which is initially empty, and then finding the most general unifier of the results as in Figure \ref{fig:constraint}.
+
+
+#+begin_export latex
+\begin{figure}[h!]
+\begin{lstlisting}
+runSolve :: [Constraint] -> Either InferErr Subst
+runSolve cs = runExcept $ solve (mempty, cs)
+
+solve :: Unif -> Solver Subst
+solve (sub, []) = return sub
+solve (sub, (t1 :~: t2) : cs) = do
+  sub' <- unify (apply sub t1) (apply sub t2)
+  solve (sub' @@ sub, apply sub' cs)
+
+unify :: Ty -> Ty -> Solver Subst
+unify (TVar v) t = bind v t
+unify t (TVar v) = bind v t
+unify (TAp a b) (TAp a' b') = do
+  s <- unify a a'
+  s' <- unify (apply s b) (apply s b')
+  return (s' @@ s)
+unify t1 t2 | t1 == t2 = return mempty
+            | otherwise =  throwError $ Unified t1 t2
+
+bind :: TVar -> Ty -> Solver Subst
+bind v t | t == TVar v = return mempty
+         | v `elem` ftv t = throwError $ Infinite v t -- occurs check
+         | kind v /= kind t = throwError $ KindMismatch (TVar v) t
+         | otherwise = return $ v +-> t
+\end{lstlisting}
+\caption{Constraint solving generated from type inference}
+\label{fig:constraint}
+\end{figure}
+#+end_export
+
+If the program is well-typed, we get a substitution as a result which we can apply to the result of inferring $m$ and we can then quantify the variables that occur in it. This gives us the following types for the definitions in Figure \ref{fig:simpledecl}.
+\begin{lstlisting}
+fold :: ∀a b c. (a -> b -> c) -> a -> List b -> a
+map :: ∀a b. (a -> b) -> List a -> List b
+until :: ∀a. (a -> Bool) -> List a -> List a
+repeat :: ∀a b. (a -> b) -> a -> List a
+\end{lstlisting}
+
+** Operational Semantics
+We have not considered an operational semantics for the language, however for the deforestation algorithm to be sound, meaning that it preserves the semantics of an expression, the evaluation strategy must be non-strict. If we consider the expression
+
+/fold (+) 0 (map square (until (> n) (repeat (+1) 1)))/
+
+then it will never terminate in non-strict semantics, as /repeat (+1) 1/ will generate an infinite list, on the other hand, the result of deforestation, presented in \ref{sec:deforest}, will terminate even with a strict semantic.

@@ -1,0 +1,13 @@
+* Introduction
+\setcounter{page}{1}
+
+Many optimization techniques exists for making compiled programs more efficient. Especially purely functional programming languages lend themselves naturally to many optimization techniques as there exists no side conditions hence allowing for easy sound optimization techniques. One such example is fusion, also called deforestation. Deforestation is in essence nothing more than term rewriting to remove intermediate datastructures. An example of a very simple fusion rule is
+/map f (map g xs) = map (f . g) xs/.
+In this fusion rule the inner map will create an intermediate list and require two iterations over lists, while the fused version will only create the result list and iterate xs once.
+More aggressive fusions rules exists, and the early 90's have presented a varyity of deforestation algorithms starting with Wadler's deforestation algorithms \cite{wadler}.
+Wadler considers deforestation with respect to a first order functional language. He extends his notion of deforestation to higher order languages by considering macros. This leaves of with an unsatisfactory result, where higher order types are first class citizens. The language is furthermore restrictive in that nested cases are not allowed. Many more deforestation algorithms exist such as \cite{shortcut}, but are specific to lists. Hamilton then presented an algorithm to deforest higher order languages in \cite{hodeforest}. This algorithm differs from algorithms such as the one presented in \cite{other} since it is guranteed to terminate.
+
+In this report, we present a tool for toying with deforestation in a similar manner to other tools presented in the Program Analysis and Transformation course. Specifically we present a language that adheres to the descriptions of \cite{hodeforest}. In this we provide a
+repl, where it is possible to define custom datatypes and functions. It is possible to load files, int othe repl and at definition time the functions are type-checked using Hindley-Milner style type inference. The repl further provides commands for evaluation, pretty-printing and showing types of expressions.
+Lastly, as a key focus of the tool it is possible to deforest an expression. This feature is currently broken, as there is some discrepancy between the algorithm we re-represent in \autoref{sec:deforest} and the implementation. The confusion is presented in \autoref{sec:example}. We further present an example in which case the deforestation works correctly.
+We present the language in \autoref{sec:lang} and give a brief introduction into the tool in \autoref{sec:tool}.

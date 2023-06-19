@@ -1,0 +1,76 @@
+#+SETUPFILE: Preamble/latex-setup.org
+
+#+TITLE: *Higher order Deforestation*
+#+AUTHOR: Jacob Herbst (mwr148)
+#+DATE: 2023-06-19
+#+LATEX_HEADER_EXTRA: \assignment{Program Analysis and Transformation}
+#+LATEX_HEADER_EXTRA: \subtitle{Tool for playing with deforestation of higher order terms}
+#+LATEX_HEADER_EXTRA: \repo{https://github.com/Spatenheinz/LeSpeciale}
+#+LATEX_HEADER_EXTRA: \advisor{}
+#+LATEX_HEADER_EXTRA:
+#+OPTIONS: toc:nil
+
+\pagenumbering{roman}
+
+#+BEGIN_abstract
+
+#+END_abstract
+
+\newpage
+
+#+TOC: Headlines 2
+
+\newpage
+
+\pagenumbering{arabic}
+
+#+include: introduction.org
+
+#+include: language.org
+
+#+include: treeless.org
+
+#+include: deforestation.org
+
+#+include: example.org
+
+#+include: userinterface.org
+
+We have in this report presented a tool that allow users to explore deforestation of a small higher order functional language. Although small the language is expressible and provides similar constructors to that of Haskell core. This goes to show that the deforestation algorithm discussed here may be used in real world scenarios. We have presented a problem with the implementation, but we have also shown that an expression such as /decode (encode xs)/ in fact gets deforested and will simply be the identity function.
+We have also presented the implementation for a type-inference. This was done to both show another form of program analysis and to algorithmically ensure the programs we consider to be well formed.
+As mentioned the tool is not complete but is given as open source for further development.
+
+\printbibliography
+
+\appendix
+
+* Abstract Syntax
+
+\lstinputlisting{src/ast.hs}
+
+* Preliminary sanity checks
+:PROPERTIES:
+:CUSTOM_ID: sec:appsanity
+:END:
+\lstinputlisting{src/check.hs}
+
+* Deforestation
+:PROPERTIES:
+:CUSTOM_ID: sec:appdeforest
+:END:
+\lstinputlisting{src/deforest.hs}
+
+* Type inference
+:PROPERTIES:
+:CUSTOM_ID: sec:appinfer
+:END:
+\lstinputlisting{src/type.hs}
+\lstinputlisting{src/tyenv.hs}
+\lstinputlisting{src/subst.hs}
+\lstinputlisting{src/infer.hs}
+
+* Parsing
+\lstinputlisting{src/parser.hs}
+
+* Pretty printing
+\lstinputlisting{src/pretty.hs}

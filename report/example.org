@@ -1,0 +1,181 @@
+* Example
+:PROPERTIES:
+:CUSTOM_ID: sec:example
+:END:
+Ideally, I would have presented a deforestation attempt on a run-length encoder and decoder. However since my implementation does not work, we consider the example from \cite{hodeforest} to see where it goes wrong.
+We use the definitions from \ref{fig:simpledecl} and want to deforest
+
+/fold (+) 0 (map square (until (> n) (repeat (+1) 1)))/
+
+As a spoiler, the paper originally defined the algorithm deforest the code to:
+
+#+begin_export latex
+\begin{figure}[h!]
+\begin{lstlisting}[mathescape=true]
+g 0 1 n
+where
+g = \a \m \n -> case (m > n)$\ominus$ of
+                  True -> a
+                  False -> g (a + square m)$\ominus$ (m + 1)$\ominus$  n
+\end{lstlisting}
+\caption{Deforestation according to \cite{hodeforest}}
+\label{fig:target}
+\end{figure}
+#+end_export
+
+It should not be hard to see that these two definitions should be semantically equivalent but /g 0 1 n/ contains no intermediate lists.
+
+We first use rule 4, thus getting /g 0 1 n/ as suggested, since we consider literals as variables.
+We further have that g must be defined by the 3 free variables 0 1 n. For readability, we call the variable representation of #0 and 1 for #1.
+
+after applying rules 6,5 and 5 we have the body of g should be the deforestation of:
+\begin{lstlisting}[mathescape=true]
+case map square (until (i > n) (repeat (+ 1) 1)) of
+  Nil  -> #0
+  Cons x xs ->  fold f (f #0 x)$\ominus$ xs
+\end{lstlisting}
+
+continuing applying the rules we at some point have the following definitions, notice the different variables
+is renamed to not get name clashes.
+\begin{lstlisting}[mathescape=true]
+#repeat = \#1 -> \#0 -> \g -> \f -> \p ->    (generated from free vars (fv))
+    (\h$\ominus$ -> (\c$\ominus$ ->  case (p c$\ominus$)$\ominus$ of
+                        True  -> #0
+                        False  -> ?) #1$\ominus$) (+ #1)$\ominus$
+#until = \n -> \#1 -> \#0 -> \g ->  \f -> (generated from fv)
+    (\p$\ominus$ -> #repeat #1 #0 g f p) (i > n)$\ominus$
+#map = \n -> \#1 ->  \#0 ->  \g -> (generated from fv)
+    (\f$\ominus$ -> #until n #1 #0 g f) square$\ominus$
+#fold = \#0 -> \n ->  \#1 -> (generated from free)
+   (\g$\ominus$ -> #map n #1 #0 g) (\x -> \y ->  (x + y))$\ominus$
+\end{lstlisting}
+
+if we do some beta reduction on these we get:
+\begin{lstlisting}[mathescape=true]
+#fold = \#0 -> \n -> \#1 -> case (#1 > n) of
+                              True -> #0
+                              False -> ?
+\end{lstlisting}
+Which looks very much like our target function in Figure\ref{fig:target}(modulo renaming). But the ? is where things go a little wrong.
+
+The expression we consider, when filling ? is
+\begin{lstlisting}[mathescape=true]
+fold g (g #0 (f c))$\ominus$ (map f (until p (repeat h (h c)$\ominus$)))
+\end{lstlisting}
+
+but this gives us the free variables \(\{g, #0, f, c, p, h\}\), remember here the rules state nothing of substitution of variables, and we assume therefore this is an afterthought to get the program on a nice form and should not conflict with the algorithm.
+if we substitute into the expression we have:
+\begin{lstlisting}[mathescape=true]
+fold (+) (#0 + square #1) (map square (until (> n) (repeat (+1) (#1 + 1))))
+\end{lstlisting}
+We can see that the second argument (#0 + square #1) is what we want as the first argument to #fold and n and (#1 + 1) also reside in the expression and we should be able to get them.
+This does not correspond to the #fold defined in $\phi$ and thus we must generate a new function. So we fill the question mark with:
+\begin{lstlisting}[mathescape=true]
+##fold g #0 c f p h
+\end{lstlisting}
+We then again get to
+\begin{lstlisting}[mathescape=true]
+case map f (until p (repeat h (h c)$\ominus$)) of
+  Nil  ->  a
+  Cons x xs ->  fold g (g a x)$\ominus$ xs
+\end{lstlisting}
+after rules 6,5,5. Again we cannot match and generate new functions. this happens for an entire round more, before a cycle starts to form. Thus I assume something goes wrong around here. But exactly what is the problem I am unfortunately not sure.
+
+We can even further state that when considering
+\begin{lstlisting}[mathescape=true]
+fold g (g #0 (f c))$\ominus$ (map f (until p (repeat h (h c)$\ominus$)))
+\end{lstlisting}
+for it to be converted appropriately into
+\begin{lstlisting}[mathescape=true]
+#fold (g #0 (f c))$\ominus$ (h #1) n
+\end{lstlisting}
+which when expanded would give the correct result, we should at some point earlier have bound these exact expressions to a free variable in this expression, but this cannot happen.
+Thus to be frank I am a bit confused if the rules presented in \cite{hodeforest} is even valid.
+
+Hence we leave the implementation broken as is.
+
+
+** Run length encoding?
+Just as a little experiment, we look at runlength encoding and decoding to see what output it will give us, in this broken state.
+We consider the following definitions:
+\begin{lstlisting}[mathescape=true]
+List a = Cons a (List a) | Nil;
+Bool = True | False;
+Pair a b = P a b;
+
+map f x = case x of
+            Nil -> Nil
+            | Cons x xs -> Cons (f x) (map f xs);
+
+take i xs = case i of
+              0 -> Nil
+              | n -> case xs of
+                     Nil -> Nil
+                     | Cons x xs -> Cons x (take (i-1) xs);
+
+length as = case as of
+              Nil -> 0
+              | Cons a as -> 1 + length as;
+
+head bs = case bs of
+            Cons b bs -> b;
+
+span p cs = case cs of
+              Nil -> P Nil Nil
+              | Cons c cs' -> case p c of
+                               False -> P Nil cs
+                               | True -> case span p cs' of
+                                           P cs ds -> P (Cons c cs) ds;
+
+groupBy y es = case es of
+                 Nil -> Nil
+                 | Cons e es -> case span (y e) es of
+                                  P es fs -> Cons (Cons e es) (groupBy y fs);
+
+group gs = groupBy (\xx -> \yy -> xx == yy) gs;
+
+encode xs = map (\x -> P (length x)  (head x)) (group xs);
+
+repeat h = Cons h (repeat h);
+
+replicate i j = take i (replicate j);
+
+append ks ls = case ks of
+                 Nil -> ls
+                 | Cons k ns -> Cons k (append ks ls);
+
+concat ms = case ms of
+              Nil -> Nil
+              | Cons m ms -> append m (concat ms);
+
+
+decode ns = concat (map (\o -> case o of P p q -> replicate p q) ns)
+\end{lstlisting}
+
+and deforesting the following
+
+\begin{lstlisting}
+\rs -> decode (encode rs)
+\end{lstlisting}
+
+Will give us the output:
+\begin{lstlisting}[mathescape=true]
+\rs -> #decode rs
+where
+  #decode :: \rs -> #concat rs
+  #concat :: \rs -> (\ms -> ms$\ominus$) (#map rs)$\ominus$
+  #map :: \rs ->  (\f$\ominus$ -> #encode rs f) (\o -> o$\ominus$)$\ominus$
+  #encode :: \rs -> \f -> ##map rs f
+  ##map :: \rs -> \f -> (\f$\ominus$ -> (\x -> x$\ominus$) (#group rs)$\ominus$) (\x$\ominus$ ->
+                                                       P (#length x)$\ominus$ (#head x)$\ominus$)$\ominus$
+  #head :: \x -> x$\ominus$
+  #length :: \x -> x$\ominus$
+  #group :: \rs -> #groupBy rs
+  #groupBy :: \rs -> (\y$\ominus$ -> rs$\ominus$) (λxx -> λyy -> ((xx == yy))$\ominus$)$\ominus$
+\end{lstlisting}
+
+And by some beta-reduction we reach
+\begin{lstlisting}[mathescape=true]
+\rs -> (\o -> o) rs
+\end{lstlisting}
+which means that even with the broken implementation we can in this case get a deforested representation, that in fact does no intermediate computation.
